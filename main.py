@@ -2,16 +2,26 @@ import requests
 import datetime
 import json
 
-fuel_prices_url = "https://openvan.camp/api/fuel/prices"
+fuel_price_sources = [
+    "https://openvan.camp/api/fuel/prices",
+    "https://fuelwide.com/api/fuel-prices/greece"
+]
 
-response = requests.get(fuel_prices_url)
+json_keys = [
+    ["data", "GR"],
+    ["observations"]
+]
 
-status_code = response.status_code
+for i in range(len(fuel_price_sources)):
+    response = requests.get(fuel_price_sources[i])
+    if response.status_code == 200:
+        prices_json = response.json()
+        for jk in json_keys[i]:
+            prices_json = prices_json[jk]
+        print(json.dumps(prices_json, indent=4))
 
-if status_code == 200:
-    prices_json = response.json()
-    now = datetime.datetime.now().strftime('%d-%m-%Y_%H-%M-%S')
-    greek_info = prices_json["data"]["GR"]
-    with open(f"GR_prices/price_{now}.json", "w") as f:
-        json.dump(greek_info, f, indent=4)
-    print(json.dumps(greek_info["prices"], indent=4))
+# Code I want to reuse:
+#    now = datetime.datetime.now().strftime('%d-%m-%Y_%H-%M-%S')
+#    with open(f"GR_prices/price_{now}.json", "w") as f:
+#        json.dump(greek_info, f, indent=4)
+
